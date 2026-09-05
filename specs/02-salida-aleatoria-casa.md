@@ -1,6 +1,6 @@
 # SPEC 02 — Salida aleatoria de la casa por agresividad
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-09-04
 > **Objetivo:** Los fantasmas salen de la casa en orden creciente de agresividad (Clyde → Inky → Pinky → Blinky) con intervalos aleatorios de 2–6 s entre salidas, re-sorteados en cada vida.
