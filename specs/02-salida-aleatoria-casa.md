@@ -91,6 +91,7 @@ Convenciones: como SPEC 01 (frames a ~60 fps, origen arriba-izquierda).
 - **No:** scheduler central con «siguiente que sale». Más estado para el mismo resultado; la cuenta atrás por fantasma ya existe.
 - **No:** seed/RNG inyectable. No hay suite de tests; `Math.random` basta.
 - **No:** salida por dots comidos. Sigue aplazada desde SPEC 01.
+- **No (decidido al implementar):** bloquear la re-entrada por la puerta de fantasmas ya salidos (el tile puerta `-` es transitable para fantasmas en `canMove`, heredado de SPEC 01). Sus re-emergencias se perciben como «salidas» extra fuera de orden (p. ej. Inky re-emerge antes de la 1ª salida de Pinky), aunque el orden lógico por vida se mantiene (0 roturas en 86 vidas simuladas). Aplazado a su propia spec (p. ej. `03-no-reentrada-puerta`).
 - Nota: definición con fase de preguntas completa (un bloque de 5).
 
 ## Riesgos
@@ -108,5 +109,6 @@ Convenciones: como SPEC 01 (frames a ~60 fps, origen arriba-izquierda).
 - Cambios en la IA de targets o el ciclo de fases.
 - Velocidades distintas / Cruise Elroy.
 - Seed determinista, niveles, sonido, dt real.
+- Bloquear la re-entrada por la puerta (fantasmas ya salidos vuelven a entrar y re-emergen).
 
 Cada uno, si llega, va en su propia spec.

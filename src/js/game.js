@@ -13,6 +13,21 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 
+const EXIT_GAP_MIN = 120; // ~2 s a 60 fps
+const EXIT_GAP_MAX = 360; // ~6 s a 60 fps
+
+// Delays absolutos de salida indexados por exitOrder: [ 0, g1, g1+g2, g1+g2+g3 ].
+// Cada intervalo entre salidas consecutivas se sortea uniforme en
+// [ EXIT_GAP_MIN, EXIT_GAP_MAX ].
+function rollExitDelays() {
+  const delays = [ 0 ];
+  for ( let i = 1; i < GHOST_STARTS.length; i++ ) {
+    delays[ i ] = delays[ i - 1 ] + EXIT_GAP_MIN +
+      Math.floor( Math.random() * ( EXIT_GAP_MAX - EXIT_GAP_MIN + 1 ) );
+  }
+  return delays;
+}
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -22,6 +37,8 @@ function createGame() {
 
   let dots = 0;
   for ( const row of grid ) for ( const v of row ) if ( v === 2 ) dots++;
+
+  const exitDelays = rollExitDelays();
 
   return {
     state: 'start',
@@ -43,8 +60,8 @@ function createGame() {
       speed: GHOST_SPEED,
       kind: g.kind,
       corner: { x: g.corner.x, y: g.corner.y },
-      exitDelay: g.exitDelay,
-      inHouse: g.exitDelay > 0, // Blinky (delay 0) nace fuera
+      exitDelay: exitDelays[ g.exitOrder ],
+      inHouse: true, // los 4 nacen dentro; Clyde (delay 0) sale de inmediato
     } ) ),
     // Fase global: 420 frames scatter -> 1200 chase, en bucle.
     mode: { phase: 'scatter', timer: SCATTER_FRAMES },
@@ -123,13 +140,14 @@ function resetPositions( game ) {
   p.y = PACMAN_START.y;
   p.dir = 'left';
   p.nextDir = null;
+  const exitDelays = rollExitDelays(); // re-sorteo en cada vida
   game.ghosts.forEach( ( g, i ) => {
     const s = GHOST_STARTS[ i ];
     g.x = s.x;
     g.y = s.y;
     g.dir = 'up';
-    g.exitDelay = s.exitDelay;
-    g.inHouse = s.exitDelay > 0;
+    g.exitDelay = exitDelays[ s.exitOrder ];
+    g.inHouse = true;
   } );
   game.mode.phase = 'scatter';
   game.mode.timer = SCATTER_FRAMES;
