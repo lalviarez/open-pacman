@@ -41,7 +41,13 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEED,
       kind: g.kind,
+      corner: { x: g.corner.x, y: g.corner.y },
+      exitDelay: g.exitDelay,
+      inHouse: g.exitDelay > 0, // Blinky (delay 0) nace fuera
     } ) ),
+    // Fase global: 420 frames scatter -> 1200 chase, en bucle.
+    mode: { phase: 'scatter', timer: 420 },
+    debug: false,
   };
 }
 
