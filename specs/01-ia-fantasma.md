@@ -1,6 +1,6 @@
 # SPEC 01 — IA de los 4 fantasmas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** ninguna
 > **Fecha:** 2026-09-04
 > **Objetivo:** Los cuatro fantasmas clásicos (Blinky agresivo, Pinky emboscador, Inky flanqueador, Clyde tímido) se mueven cada uno con su propia lógica de target, alternando fases scatter/chase y saliendo de la casa de forma escalonada.
