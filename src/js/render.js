@@ -1,6 +1,7 @@
 // render.js
 // Dibujo arcade sobre canvas. Usa game.grid (no MAZE) para reflejar dots
-// comidos, y ghostTarget (ghosts.js) para los marcadores de debug.
+// comidos, ghostTarget (ghosts.js) para los marcadores de debug y
+// GHOST_STARTS (maze.js) para el orden de la linea de salida del HUD.
 
 const TILE = 20;
 const WALL_COLOR = '#2121ff';
@@ -146,12 +147,28 @@ function drawHUD( ctx, game, W ) {
   if ( game.debug ) {
     ctx.textAlign = 'center';
     ctx.fillText( game.mode.phase.toUpperCase(), W * TILE / 2, 4 );
+    // Linea extra: frames restantes de salida de cada fantasma en casa,
+    // en orden de salida (verifica rango [120, 360] y orden C -> I -> P -> B).
+    const waiting = game.ghosts
+      .filter( ( g ) => g.inHouse )
+      .sort( ( a, b ) => EXIT_ORDER[ a.kind ] - EXIT_ORDER[ b.kind ] );
+    if ( waiting.length ) {
+      ctx.fillText(
+        waiting.map( ( g ) => g.kind + ':' + g.exitDelay ).join( ' ' ),
+        W * TILE / 2,
+        22
+      );
+    }
   }
 }
 
 const GHOST_COLORS = {
   blinky: '#ff0000', pinky: '#ffb8ff', inky: '#00ffff', clyde: '#ffb852',
 };
+
+// Orden de salida por kind, derivado de GHOST_STARTS (maze.js).
+const EXIT_ORDER = {};
+GHOST_STARTS.forEach( ( s ) => { EXIT_ORDER[ s.kind ] = s.exitOrder; } );
 
 // Debug (tecla D): cuadrado de 4 px del color de cada fantasma en su
 // tile-objetivo (ghostTarget de ghosts.js).

@@ -51,13 +51,15 @@ const MAZE = MAZE_STR.map( ( row ) => row.split( '' ).map( parseTile ) );
 
 const TUNNEL_ROW = 14;
 const PACMAN_START = { x: 13, y: 23 };
-// exitDelay en frames (~60 fps). Las esquinas pueden caer sobre muros o
-// bordes: solo sirven para comparar distancias, nunca se ocupan.
+// exitOrder: orden de salida por agresividad (0 = Clyde sale primero,
+// 3 = Blinky ultimo); el delay concreto de cada uno se sortea en game.js.
+// Las esquinas pueden caer sobre muros o bordes: solo sirven para comparar
+// distancias, nunca se ocupan.
 const GHOST_STARTS = [
-  { x: 13, y: 11, kind: 'blinky', corner: { x: 25, y: 0 },  exitDelay: 0 },   // ya fuera
-  { x: 13, y: 14, kind: 'pinky',  corner: { x: 2, y: 0 },   exitDelay: 120 }, // ~2 s
-  { x: 12, y: 14, kind: 'inky',   corner: { x: 27, y: 30 }, exitDelay: 360 }, // ~6 s
-  { x: 15, y: 14, kind: 'clyde',  corner: { x: 0, y: 30 },  exitDelay: 600 }, // ~10 s
+  { x: 14, y: 14, kind: 'blinky', corner: { x: 25, y: 0 },  exitOrder: 3 }, // dentro, ultimo
+  { x: 13, y: 14, kind: 'pinky',  corner: { x: 2, y: 0 },   exitOrder: 2 },
+  { x: 12, y: 14, kind: 'inky',   corner: { x: 27, y: 30 }, exitOrder: 1 },
+  { x: 15, y: 14, kind: 'clyde',  corner: { x: 0, y: 30 },  exitOrder: 0 }, // primero
 ];
 
 window.MAZE = MAZE;
