@@ -1,13 +1,18 @@
 // ghosts.js
-// IA de los fantasmas: target por personalidad, decision de direccion y movimiento.
+// IA de los fantasmas: target por personalidad, fase scatter/chase, decision y movimiento.
 // Carga ANTES que game.js: sus globals (DIRS, OPPOSITE, canMove, aligned,
 // wrapTunnel) solo se referencian dentro de funciones, nunca al cargar.
 
-const GHOST_SPEED = 0.1; // 1/10 celda/frame
+const GHOST_SPEED = 0.1;    // 1/10 celda/frame
+const SCATTER_FRAMES = 420; // ~7 s a 60 fps
+const CHASE_FRAMES = 1200;  // ~20 s a 60 fps
 const DIR_PRIORITY = [ 'up', 'left', 'down', 'right' ]; // desempate clasico
 
-// Tile-objetivo del fantasma segun su personalidad (kind).
+// Tile-objetivo segun fase y personalidad (kind). En scatter, la esquina.
 function ghostTarget( game, g ) {
+  if ( game.mode.phase === 'scatter' ) {
+    return { x: g.corner.x, y: g.corner.y };
+  }
   const p = game.pacman;
   const px = Math.round( p.x );
   const py = Math.round( p.y );
@@ -81,6 +86,25 @@ function updateGhost( game, g ) {
   wrapTunnel( g, width );
 }
 
+// Timer de fase global scatter/chase en bucle (420/1200). En el frame del
+// cambio, todo fantasma fuera de la casa invierte su direccion.
+function updateGhostMode( game ) {
+  game.mode.timer--;
+  if ( game.mode.timer > 0 ) return;
+
+  if ( game.mode.phase === 'scatter' ) {
+    game.mode.phase = 'chase';
+    game.mode.timer = CHASE_FRAMES;
+  } else {
+    game.mode.phase = 'scatter';
+    game.mode.timer = SCATTER_FRAMES;
+  }
+  for ( const g of game.ghosts ) {
+    if ( !g.inHouse ) g.dir = OPPOSITE[ g.dir ];
+  }
+}
+
 window.GHOST_SPEED = GHOST_SPEED;
 window.ghostTarget = ghostTarget;
 window.updateGhost = updateGhost;
+window.updateGhostMode = updateGhostMode;

@@ -1,6 +1,7 @@
 // game.js
 // Estado y reglas (arbitro). Depende de globals de maze.js: MAZE, TUNNEL_ROW,
-// PACMAN_START, GHOST_STARTS; y de ghosts.js: GHOST_SPEED, updateGhost.
+// PACMAN_START, GHOST_STARTS; y de ghosts.js: GHOST_SPEED, SCATTER_FRAMES,
+// updateGhost, updateGhostMode.
 
 const DIRS = {
   left: { x: -1, y: 0 },
@@ -46,7 +47,7 @@ function createGame() {
       inHouse: g.exitDelay > 0, // Blinky (delay 0) nace fuera
     } ) ),
     // Fase global: 420 frames scatter -> 1200 chase, en bucle.
-    mode: { phase: 'scatter', timer: 420 },
+    mode: { phase: 'scatter', timer: SCATTER_FRAMES },
     debug: false,
   };
 }
@@ -133,6 +134,7 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  updateGhostMode( game ); // fase scatter/chase + inversion al cambiar
   movePacman( game );
   game.ghosts.forEach( ( g ) => updateGhost( game, g ) );
 
