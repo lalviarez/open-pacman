@@ -1,5 +1,6 @@
 // render.js
-// Dibujo arcade sobre canvas. Usa game.grid (no MAZE) para reflejar dots comidos.
+// Dibujo arcade sobre canvas. Usa game.grid (no MAZE) para reflejar dots
+// comidos, y ghostTarget (ghosts.js) para los marcadores de debug.
 
 const TILE = 20;
 const WALL_COLOR = '#2121ff';
@@ -142,9 +143,26 @@ function drawHUD( ctx, game, W ) {
   ctx.fillText( 'SCORE ' + game.score, 8, 4 );
   ctx.textAlign = 'right';
   ctx.fillText( 'VIDAS ' + game.lives, W * TILE - 8, 4 );
+  if ( game.debug ) {
+    ctx.textAlign = 'center';
+    ctx.fillText( game.mode.phase.toUpperCase(), W * TILE / 2, 4 );
+  }
 }
 
-const GHOST_COLORS = [ '#ff0000', '#00ffff', '#ffb8ff', '#ffb852' ];
+const GHOST_COLORS = {
+  blinky: '#ff0000', pinky: '#ffb8ff', inky: '#00ffff', clyde: '#ffb852',
+};
+
+// Debug (tecla D): cuadrado de 4 px del color de cada fantasma en su
+// tile-objetivo (ghostTarget de ghosts.js).
+function drawDebug( ctx, game ) {
+  game.ghosts.forEach( ( g ) => {
+    const t = ghostTarget( game, g );
+    const { cx, cy } = cellCenter( t.x, t.y );
+    ctx.fillStyle = GHOST_COLORS[ g.kind ] || '#ff0000';
+    ctx.fillRect( cx - 2, cy - 2, 4, 4 );
+  } );
+}
 
 function draw( ctx, game, frame ) {
   const grid = game.grid;
@@ -158,7 +176,8 @@ function draw( ctx, game, frame ) {
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000' ) );
+  game.ghosts.forEach( ( g ) => drawGhost( ctx, g, GHOST_COLORS[ g.kind ] || '#ff0000' ) );
+  if ( game.debug ) drawDebug( ctx, game );
   drawHUD( ctx, game, W );
 }
 

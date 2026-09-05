@@ -17,6 +17,12 @@ const KEY_DIR = {
 };
 
 document.addEventListener( 'keydown', ( e ) => {
+  // Tecla D: alternar debug (marcadores de target + fase en el HUD).
+  if ( e.key === 'd' || e.key === 'D' ) {
+    e.preventDefault();
+    game.debug = !game.debug;
+    return;
+  }
   const dir = KEY_DIR[ e.key ];
   if ( !dir ) return;
   e.preventDefault();

@@ -16,7 +16,10 @@
       </div>
     </div>
 
+    <!-- Orden de carga: maze -> ghosts -> game -> render -> main.
+         ghosts.js usa globals de game.js solo dentro de funciones (runtime). -->
     <script src="js/maze.js"></script>
+    <script src="js/ghosts.js"></script>
     <script src="js/game.js"></script>
     <script src="js/render.js"></script>
     <script src="js/main.js"></script>

@@ -1,6 +1,7 @@
 // game.js
-// Estado y reglas. Depende de globals de maze.js: MAZE, TUNNEL_ROW,
-// PACMAN_START, GHOST_STARTS.
+// Estado y reglas (arbitro). Depende de globals de maze.js: MAZE, TUNNEL_ROW,
+// PACMAN_START, GHOST_STARTS; y de ghosts.js: GHOST_SPEED, SCATTER_FRAMES,
+// updateGhost, updateGhostMode.
 
 const DIRS = {
   left: { x: -1, y: 0 },
@@ -11,7 +12,6 @@ const DIRS = {
 const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
-const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
@@ -42,7 +42,13 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEED,
       kind: g.kind,
+      corner: { x: g.corner.x, y: g.corner.y },
+      exitDelay: g.exitDelay,
+      inHouse: g.exitDelay > 0, // Blinky (delay 0) nace fuera
     } ) ),
+    // Fase global: 420 frames scatter -> 1200 chase, en bucle.
+    mode: { phase: 'scatter', timer: SCATTER_FRAMES },
+    debug: false,
   };
 }
 
@@ -110,54 +116,7 @@ function movePacman( game ) {
   wrapTunnel( p, width );
 }
 
-function decideGhost( game, g ) {
-  const grid = game.grid;
-  const p = game.pacman;
-
-  const options = Object.keys( DIRS ).filter(
-    ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir, 'ghost' )
-  );
-  // Sin salida (callejon): permitir el giro de 180.
-  const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
-
-  if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
-    let best = choices[ 0 ];
-    let bestDist = Infinity;
-    for ( const dir of choices ) {
-      const d = DIRS[ dir ];
-      const nx = g.x + d.x;
-      const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
-        bestDist = dist;
-        best = dir;
-      }
-    }
-    g.dir = best;
-  } else {
-    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
-  }
-}
-
-function moveGhost( game, g ) {
-  const grid = game.grid;
-  const width = grid[ 0 ].length;
-
-  if ( aligned( g.x ) && aligned( g.y ) ) {
-    g.x = Math.round( g.x );
-    g.y = Math.round( g.y );
-    decideGhost( game, g );
-    if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
-  }
-
-  const d = DIRS[ g.dir ];
-  g.x += d.x * g.speed;
-  g.y += d.y * g.speed;
-  wrapTunnel( g, width );
-}
-
+// Reset instantaneo tras perder vida: posiciones, casa y fase global.
 function resetPositions( game ) {
   const p = game.pacman;
   p.x = PACMAN_START.x;
@@ -165,10 +124,15 @@ function resetPositions( game ) {
   p.dir = 'left';
   p.nextDir = null;
   game.ghosts.forEach( ( g, i ) => {
-    g.x = GHOST_STARTS[ i ].x;
-    g.y = GHOST_STARTS[ i ].y;
+    const s = GHOST_STARTS[ i ];
+    g.x = s.x;
+    g.y = s.y;
     g.dir = 'up';
+    g.exitDelay = s.exitDelay;
+    g.inHouse = s.exitDelay > 0;
   } );
+  game.mode.phase = 'scatter';
+  game.mode.timer = SCATTER_FRAMES;
 }
 
 function collides( a, b ) {
@@ -176,8 +140,9 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  updateGhostMode( game ); // fase scatter/chase + inversion al cambiar
   movePacman( game );
-  game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
+  game.ghosts.forEach( ( g ) => updateGhost( game, g ) );
 
   for ( const g of game.ghosts ) {
     if ( collides( game.pacman, g ) ) {
