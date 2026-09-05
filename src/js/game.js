@@ -116,6 +116,7 @@ function movePacman( game ) {
   wrapTunnel( p, width );
 }
 
+// Reset instantaneo tras perder vida: posiciones, casa y fase global.
 function resetPositions( game ) {
   const p = game.pacman;
   p.x = PACMAN_START.x;
@@ -123,10 +124,15 @@ function resetPositions( game ) {
   p.dir = 'left';
   p.nextDir = null;
   game.ghosts.forEach( ( g, i ) => {
-    g.x = GHOST_STARTS[ i ].x;
-    g.y = GHOST_STARTS[ i ].y;
+    const s = GHOST_STARTS[ i ];
+    g.x = s.x;
+    g.y = s.y;
     g.dir = 'up';
+    g.exitDelay = s.exitDelay;
+    g.inHouse = s.exitDelay > 0;
   } );
+  game.mode.phase = 'scatter';
+  game.mode.timer = SCATTER_FRAMES;
 }
 
 function collides( a, b ) {

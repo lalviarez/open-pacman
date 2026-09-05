@@ -1,5 +1,5 @@
 // ghosts.js
-// IA de los fantasmas: target por personalidad, fase scatter/chase, decision y movimiento.
+// IA de los fantasmas: target por personalidad, fase scatter/chase, casa y movimiento.
 // Carga ANTES que game.js: sus globals (DIRS, OPPOSITE, canMove, aligned,
 // wrapTunnel) solo se referencian dentro de funciones, nunca al cargar.
 
@@ -72,6 +72,38 @@ function decideGhost( game, g ) {
 function updateGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  if ( g.inHouse ) {
+    // Logica propia de la casa (nunca pasa por aligned/decideGhost):
+    // esperar oscilando y, al agotar el delay, salir por la puerta.
+    if ( g.exitDelay > 0 ) {
+      g.exitDelay--;
+      // Oscilar arriba/abajo en la propia x entre 13.5 y 14.5.
+      const d = DIRS[ g.dir ];
+      let ny = g.y + d.y * g.speed;
+      if ( ny <= 13.5 ) { ny = 13.5; g.dir = 'down'; }
+      else if ( ny >= 14.5 ) { ny = 14.5; g.dir = 'up'; }
+      g.y = ny;
+      return;
+    }
+    // Salida: centrar en x = 13 y subir por la puerta hasta (13,11).
+    if ( Math.abs( g.x - 13 ) > 1e-3 ) {
+      const step = Math.sign( 13 - g.x ) * g.speed;
+      const nx = g.x + step;
+      g.x = Math.abs( nx - 13 ) < g.speed ? 13 : nx;
+      g.dir = step < 0 ? 'left' : 'right';
+      return;
+    }
+    g.dir = 'up';
+    const ny = g.y - g.speed;
+    if ( ny <= 11 ) {
+      g.y = 11;
+      g.inHouse = false;
+    } else {
+      g.y = ny;
+    }
+    return;
+  }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
